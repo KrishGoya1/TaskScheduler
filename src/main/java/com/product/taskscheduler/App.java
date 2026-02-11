@@ -10,7 +10,6 @@ public class App {
     private static final Scheduler scheduler = new Scheduler();
 
     public static void main(String[] args) {
-        // Initialize DB
         DatabaseManager.initializeDatabase();
         
         System.out.println("Welcome to ProManage Task Scheduler");
