@@ -8,20 +8,14 @@ import java.util.List;
 public class Scheduler {
 
     public void generateSchedule(List<Project> allProjects) {
-        // Sort projects by revenue in descending order
         allProjects.sort(Comparator.comparingDouble(Project::getRevenue).reversed());
 
-        Project[] weeklySchedule = new Project[5]; // Mon=0, Tue=1, Wed=2, Thu=3, Fri=4
+        Project[] weeklySchedule = new Project[5];
         double totalRevenue = 0;
         int projectsScheduledCount = 0;
 
         for (Project project : allProjects) {
             if (projectsScheduledCount >= 5) break; 
-
-            // Find the latest possible slot before the deadline
-            // Deadline represents max days from start (1-based index effectively).
-            // E.g. Deadline 3 means can be done on Day 1, 2, or 3 (index 0, 1, 2).
-            // We cap at 5 because we only have 5 days.
             int maxDayIndex = Math.min(project.getDeadline(), 5) - 1;
 
             for (int i = maxDayIndex; i >= 0; i--) {

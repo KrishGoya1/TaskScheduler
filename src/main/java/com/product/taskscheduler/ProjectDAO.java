@@ -17,10 +17,10 @@ public class ProjectDAO {
             pstmt.setDouble(3, project.getRevenue());
             
             pstmt.executeUpdate();
-            System.out.println("✅ Project added successfully: " + project.getTitle());
+            System.out.println("success: " + project.getTitle());
             
         } catch (SQLException e) {
-            System.err.println("Error adding project: " + e.getMessage());
+            System.err.println("error: " + e.getMessage());
         }
     }
 
@@ -41,7 +41,7 @@ public class ProjectDAO {
                 ));
             }
         } catch (SQLException e) {
-            System.err.println("Error retrieving projects: " + e.getMessage());
+            System.err.println("error: " + e.getMessage());
         }
         return projects;
     }
