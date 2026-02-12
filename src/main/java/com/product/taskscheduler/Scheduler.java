@@ -1,51 +1,73 @@
 package com.product.taskscheduler;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
 public class Scheduler {
 
-    public void generateSchedule(List<Project> allProjects) {
-        allProjects.sort(Comparator.comparingDouble(Project::getRevenue).reversed());
+    public static class ScheduleResult {
+        private final Project[] weeklySchedule; // Index 0-4 for Mon-Fri
+        private final List<Project> rejectedProjects;
+        private final double totalRevenue;
 
-        Project[] weeklySchedule = new Project[5];
+        public ScheduleResult(Project[] weeklySchedule, List<Project> rejectedProjects, double totalRevenue) {
+            this.weeklySchedule = weeklySchedule;
+            this.rejectedProjects = rejectedProjects;
+            this.totalRevenue = totalRevenue;
+        }
+
+        public Project[] getWeeklySchedule() {
+            return weeklySchedule;
+        }
+
+        public List<Project> getRejectedProjects() {
+            return rejectedProjects;
+        }
+
+        public double getTotalRevenue() {
+            return totalRevenue;
+        }
+    }
+
+    public ScheduleResult calculateSchedule(List<Project> allProjects) {
+        // Clone list to avoid modifying the original list
+        List<Project> sortedProjects = new ArrayList<>(allProjects);
+        
+        // Sort projects by revenue in descending order
+        sortedProjects.sort(Comparator.comparingDouble(Project::getRevenue).reversed());
+
+        Project[] weeklySchedule = new Project[5]; // Mon=0, Tue=1, Wed=2, Thu=3, Fri=4
         double totalRevenue = 0;
-        int projectsScheduledCount = 0;
+        List<Project> rejectedProjects = new ArrayList<>();
+        
+        // Track which projects are scheduled
+        List<Project> scheduledList = new ArrayList<>();
 
-        for (Project project : allProjects) {
-            if (projectsScheduledCount >= 5) break; 
+        for (Project project : sortedProjects) {
+            boolean scheduled = false;
+            
+            // Find the latest possible slot before the deadline
+            // Deadline 1 = Day 1 (index 0). Max allowed index is 4 (Day 5).
             int maxDayIndex = Math.min(project.getDeadline(), 5) - 1;
 
-            for (int i = maxDayIndex; i >= 0; i--) {
-                if (weeklySchedule[i] == null) {
-                    weeklySchedule[i] = project;
-                    totalRevenue += project.getRevenue();
-                    projectsScheduledCount++;
-                    break; 
+            if (maxDayIndex >= 0) {
+                for (int i = maxDayIndex; i >= 0; i--) {
+                    if (weeklySchedule[i] == null) {
+                        weeklySchedule[i] = project;
+                        totalRevenue += project.getRevenue();
+                        scheduledList.add(project);
+                        scheduled = true;
+                        break;
+                    }
                 }
             }
-        }
 
-        System.out.println("\n=== OPTIMAL WEEKLY SCHEDULE ===");
-        String[] days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
-        boolean anyScheduled = false;
-        
-        for (int i = 0; i < 5; i++) {
-            if (weeklySchedule[i] != null) {
-                System.out.printf("%-10s: %s (Revenue: %.2f)%n", days[i], weeklySchedule[i].getTitle(), weeklySchedule[i].getRevenue());
-                anyScheduled = true;
-            } else {
-                System.out.printf("%-10s: [Free Slot]%n", days[i]);
+            if (!scheduled) {
+                rejectedProjects.add(project);
             }
         }
 
-        if (!anyScheduled) {
-            System.out.println("No projects could be scheduled.");
-        }
-        
-        System.out.printf("\nTotal Expected Revenue: %.2f%n", totalRevenue);
-        System.out.println("===============================");
+        return new ScheduleResult(weeklySchedule, rejectedProjects, totalRevenue);
     }
 }
